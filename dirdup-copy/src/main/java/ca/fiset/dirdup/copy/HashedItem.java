@@ -24,35 +24,38 @@ public class HashedItem implements DirectoryItem {
 		
 		// Compute path
 		{
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			OutputStreamWriter osw = new OutputStreamWriter(baos, "UTF-8");
-			
-			boolean isFirst = true;
-			for(String fragPath : this.srcItem.getPath()){
-				if( isFirst ){
-					isFirst = false;
-				} else {
-					osw.flush();
-					baos.write( (byte)0x00 );
-				}
-				
-				osw.write(fragPath);
-			}
-			osw.flush();
-			
-			MessageDigest md = MessageDigest.getInstance("SHA-1");
-			byte[] digest = md.digest( baos.toByteArray() );
-			
-			StringWriter sw = new StringWriter();
-			for(int i=0; i<digest.length && i<8; ++i){
-				int v = (digest[i] & 0xff);
-				String hex = String.format("%02x", v);
-				sw.write(hex);
-			}
-			sw.flush();
-			
 			this.path = new ArrayList<String>(1);
-			this.path.add( sw.toString() );
+			
+			if( this.srcItem.getPath().size() > 0 ){
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				OutputStreamWriter osw = new OutputStreamWriter(baos, "UTF-8");
+				
+				boolean isFirst = true;
+				for(String fragPath : this.srcItem.getPath()){
+					if( isFirst ){
+						isFirst = false;
+					} else {
+						osw.flush();
+						baos.write( (byte)0x00 );
+					}
+					
+					osw.write(fragPath);
+				}
+				osw.flush();
+				
+				MessageDigest md = MessageDigest.getInstance("SHA-1");
+				byte[] digest = md.digest( baos.toByteArray() );
+				
+				StringWriter sw = new StringWriter();
+				for(int i=0; i<digest.length && i<8; ++i){
+					int v = (digest[i] & 0xff);
+					String hex = String.format("%02x", v);
+					sw.write(hex);
+				}
+				sw.flush();
+				
+				this.path.add( sw.toString() );
+			}
 		}
 		
 		// Compute name

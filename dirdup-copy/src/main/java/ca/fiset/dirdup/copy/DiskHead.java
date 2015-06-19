@@ -7,11 +7,11 @@ import java.util.Vector;
 
 import ca.carleton.gcrc.couch.fsentry.FSEntry;
 
-public class FSEntryHead implements DirectoryHead {
+public class DiskHead implements DirectoryHead {
 
 	private FSEntry head;
 	
-	public FSEntryHead(FSEntry head){
+	public DiskHead(FSEntry head){
 		this.head = head;
 	}
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Stack;
 
@@ -12,9 +13,11 @@ import ca.carleton.gcrc.couch.fsentry.FSEntryFile;
 import ca.fiset.dirdup.copy.CollectionHead;
 import ca.fiset.dirdup.copy.DirectoryItem;
 import ca.fiset.dirdup.copy.DirectoryItemUtils;
-import ca.fiset.dirdup.copy.FSEntryHead;
+import ca.fiset.dirdup.copy.DiskHead;
+import ca.fiset.dirdup.copy.HashedHead;
 import ca.fiset.dirdup.copy.HashedItem;
 import ca.fiset.dirdup.copy.HeadComparator;
+import ca.fiset.dirdup.copy.HeadCopier;
 
 public class CommandCopy implements Command {
 
@@ -104,92 +107,14 @@ public class CommandCopy implements Command {
 		}
 
 		// Get list of source files
-		FSEntryHead srcHead = new FSEntryHead( new FSEntryFile(srcDir) );
+		DiskHead srcHead = new DiskHead( new FSEntryFile(srcDir) );
 		
 		// Make list of hashed named items
-		CollectionHead srcHashedHead = new CollectionHead();
-		{
-			List<DirectoryItem> items = srcHead.getItems();
-			for(DirectoryItem item : items){
-				HashedItem targetItem = new HashedItem(item);
-				srcHashedHead.addItem(targetItem);
-				
-//				System.out.print(targetItem.getPathAndName());
-//				System.out.print(" -> ");
-//				System.out.println(item.getPathAndName());
-			}
-		}
-		
-		// Get list of target files
-		FSEntryHead targetHead = new FSEntryHead( new FSEntryFile(targetDir) );
-		
-		// Compare source and target
-		HeadComparator comparator = new HeadComparator(srcHashedHead, targetHead);
-		
-		// Delete items
-		{
-			List<DirectoryItem> itemsToDelete = comparator.getDeletedItems();
-			for(DirectoryItem itemToDelete : itemsToDelete){
-				File fileToDelete = DirectoryItemUtils.getFile(targetDir, itemToDelete);
-				
-				System.out.println("Deleting "+fileToDelete.getAbsolutePath());
-				fileToDelete.delete();
-			}
-		}
-		
-		// Add items
-		{
-			List<DirectoryItem> itemsToAdd = comparator.getAddedItems();
-			for(DirectoryItem itemToAdd : itemsToAdd){
-				File fileToAdd = DirectoryItemUtils.getFile(targetDir, itemToAdd);
-				
-				System.out.println("Copy: "+fileToAdd.getAbsolutePath());
-				
-				copyFile(itemToAdd.getEntry(), fileToAdd);
-			}
-		}
+		HashedHead srcHashedHead = new HashedHead(srcHead);
+
+		// Copy
+		HeadCopier copier = new HeadCopier();
+		copier.setPrintWriter( new PrintWriter(System.out) );
+		copier.copyHead(srcHashedHead, targetDir);
 	}
-
-	private void copyFile(FSEntry entry, File fileToAdd) throws Exception {
-		FileOutputStream fos = null;
-		InputStream is = null;
-		
-		try {
-			File parent = fileToAdd.getParentFile();
-			if( false == parent.exists() ){
-				parent.mkdirs();
-			}
-			
-			fos = new FileOutputStream(fileToAdd);
-			is = entry.getInputStream();
-
-			int b = is.read();
-			while( b >= 0 ){
-				fos.write(b);
-				b = is.read();
-			}
-			
-			fos.flush();
-			
-		} catch(Exception e) {
-			throw new Exception("Error copying file "+entry.getName(),e);
-			
-		} finally {
-			try {
-				if( null != fos ){
-					fos.close();
-				}
-			} catch (Exception e) {
-				// Ignore
-			}
-			try {
-				if( null != is ){
-					is.close();
-				}
-			} catch (Exception e) {
-				// Ignore
-			}
-		}
-	}
-
 }
