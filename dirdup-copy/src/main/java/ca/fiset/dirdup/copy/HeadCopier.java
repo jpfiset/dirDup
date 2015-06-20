@@ -1,9 +1,13 @@
 package ca.fiset.dirdup.copy;
 
+import java.io.BufferedInputStream;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.channels.FileChannel;
 import java.util.List;
 
 import ca.carleton.gcrc.couch.fsentry.FSEntry;
@@ -36,6 +40,7 @@ public class HeadCopier {
 				
 				if( null != pw ){
 					pw.println("Deleting "+fileToDelete.getAbsolutePath());
+					pw.flush();
 				}
 				fileToDelete.delete();
 			}
@@ -48,10 +53,24 @@ public class HeadCopier {
 				File fileToAdd = DirectoryItemUtils.getFile(targetDir, itemToAdd);
 				
 				if( null != pw ){
-					pw.println("Copy: "+fileToAdd.getAbsolutePath());
+					pw.println("Copy "+itemToAdd.getEntry().getName()+" -> "+fileToAdd.getPath());
+					pw.flush();
 				}
 				
-				copyFile(itemToAdd.getEntry(), fileToAdd);
+				File parent = fileToAdd.getParentFile();
+				if( false == parent.exists() ){
+					parent.mkdirs();
+				}
+				
+				FSEntry entry = itemToAdd.getEntry();
+				if( entry instanceof FSEntryFile ){
+					FSEntryFile fileEntry = (FSEntryFile)entry;
+					File file = fileEntry.getFile();
+					nioTransferCopy(file, fileToAdd);
+					
+				} else {
+					copyFile(entry, fileToAdd);
+				}
 			}
 		}
 	}
@@ -61,11 +80,6 @@ public class HeadCopier {
 		InputStream is = null;
 		
 		try {
-			File parent = fileToAdd.getParentFile();
-			if( false == parent.exists() ){
-				parent.mkdirs();
-			}
-			
 			fos = new FileOutputStream(fileToAdd);
 			is = entry.getInputStream();
 
@@ -97,4 +111,57 @@ public class HeadCopier {
 			}
 		}
 	}
+	
+	private void nioTransferCopy(File source, File target) throws Exception {
+		FileInputStream fis = null;
+		FileOutputStream fos = null;
+		FileChannel in = null;
+        FileChannel out = null;
+
+        try {
+        	fis = new FileInputStream(source);
+        	fos = new FileOutputStream(target);
+        	
+            in = fis.getChannel();
+            out = fos.getChannel();
+
+            long size = in.size();
+            long transferred = in.transferTo(0, size, out);
+
+            while(transferred != size){
+                transferred += in.transferTo(transferred, size - transferred, out);
+            }
+        } catch (Exception e) {
+            throw new Exception("Error copying file "+source.getPath()+" to "+target.getPath(),e);
+        } finally {
+	        try {
+				if( null != in ){
+					in.close();
+				}
+	        } catch (Exception e) {
+	            // ignore
+	        }
+	        try {
+				if( null != out ){
+					out.close();
+				}
+	        } catch (Exception e) {
+	            // ignore
+	        }
+	        try {
+				if( null != fis ){
+					fis.close();
+				}
+	        } catch (Exception e) {
+	            // ignore
+	        }
+	        try {
+				if( null != fos ){
+					fos.close();
+				}
+	        } catch (Exception e) {
+	            // ignore
+	        }
+        }
+    }
 }
