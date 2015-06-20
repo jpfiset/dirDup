@@ -1,16 +1,15 @@
 package ca.fiset.dirdup.copy;
 
+import java.io.File;
 import java.io.StringWriter;
 import java.util.List;
 
-import ca.carleton.gcrc.couch.fsentry.FSEntry;
-
 public class DiskItem implements DirectoryItem {
 
-	private FSEntry entry;
+	private File entry;
 	private List<String> path;
 	
-	public DiskItem(FSEntry entry, List<String> path) {
+	public DiskItem(File entry, List<String> path) {
 		this.entry = entry;
 		this.path = path;
 	}
@@ -26,7 +25,7 @@ public class DiskItem implements DirectoryItem {
 	}
 
 	@Override
-	public FSEntry getEntry(){
+	public File getEntry(){
 		return entry;
 	}
 	
@@ -44,5 +43,10 @@ public class DiskItem implements DirectoryItem {
 		sw.flush();
 		
 		return sw.toString();
+	}
+
+	@Override
+	public String getSourcePathAndName() {
+		return getPathAndName();
 	}
 }

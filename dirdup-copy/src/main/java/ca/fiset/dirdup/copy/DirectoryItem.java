@@ -1,8 +1,7 @@
 package ca.fiset.dirdup.copy;
 
+import java.io.File;
 import java.util.List;
-
-import ca.carleton.gcrc.couch.fsentry.FSEntry;
 
 public interface DirectoryItem {
 	
@@ -10,7 +9,9 @@ public interface DirectoryItem {
 	
 	String getName();
 
-	FSEntry getEntry();
-	
+	File getEntry();
+
 	String getPathAndName();
+
+	String getSourcePathAndName();
 }

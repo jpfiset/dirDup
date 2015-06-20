@@ -1,6 +1,7 @@
 package ca.fiset.dirdup.copy;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.security.MessageDigest;
@@ -8,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import ca.carleton.gcrc.couch.fsentry.FSEntry;
 
 public class HashedItem implements DirectoryItem {
 	
@@ -103,7 +102,7 @@ public class HashedItem implements DirectoryItem {
 	}
 
 	@Override
-	public FSEntry getEntry(){
+	public File getEntry(){
 		return srcItem.getEntry();
 	}
 	
@@ -125,5 +124,10 @@ public class HashedItem implements DirectoryItem {
 		sw.flush();
 		
 		return sw.toString();
+	}
+
+	@Override
+	public String getSourcePathAndName() {
+		return srcItem.getSourcePathAndName();
 	}
 }

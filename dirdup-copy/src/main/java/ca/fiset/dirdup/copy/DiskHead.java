@@ -1,17 +1,16 @@
 package ca.fiset.dirdup.copy;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
-import ca.carleton.gcrc.couch.fsentry.FSEntry;
-
 public class DiskHead implements DirectoryHead {
 
-	private FSEntry head;
+	private File head;
 	
-	public DiskHead(FSEntry head){
+	public DiskHead(File head){
 		this.head = head;
 	}
 
@@ -23,11 +22,12 @@ public class DiskHead implements DirectoryHead {
 		return result;
 	}
 
-	public void getItems(FSEntry dir, Stack<String> path, List<DirectoryItem> items){
+	public void getItems(File dir, Stack<String> path, List<DirectoryItem> items){
 		List<String> effectivePath = new ArrayList<String>(path);
 		
-		List<FSEntry> children = dir.getChildren();
-		for(FSEntry child : children){
+		String[] children = dir.list();
+		for(String childName : children){
+			File child = new File(dir,childName);
 			if( child.isDirectory() ){
 				path.push(child.getName());
 				getItems(child, path, items);

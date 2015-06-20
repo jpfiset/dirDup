@@ -3,14 +3,13 @@ package ca.fiset.dirdup.copy;
 import java.io.File;
 import java.util.List;
 
-import ca.carleton.gcrc.couch.fsentry.FSEntryFile;
 import junit.framework.TestCase;
 
 public class HashedHeadTest extends TestCase {
 	
 	public void testCreation() throws Exception {
 		File resourceDir = TestUtils.getResourceDirectory();
-		DiskHead head = new DiskHead( new FSEntryFile( new File(resourceDir,"src") ) );
+		DiskHead head = new DiskHead( new File(resourceDir,"src") );
 		HashedHead hashedHead = new HashedHead(head);
 		
 		List<DirectoryItem> items = hashedHead.getItems();
@@ -22,7 +21,7 @@ public class HashedHeadTest extends TestCase {
 	public void testHashedCopy() throws Exception {
 		File resourceDir = TestUtils.getResourceDirectory();
 		File targetDir = TestUtils.getTestDirectory("testHashedCopy");
-		DiskHead head = new DiskHead( new FSEntryFile( new File(resourceDir,"src") ) );
+		DiskHead head = new DiskHead( new File(resourceDir,"src") );
 		HashedHead hashedHead = new HashedHead(head);
 		HeadCopier copier = new HeadCopier();
 		copier.copyHead(hashedHead, targetDir);
